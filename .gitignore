@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Model files (Nên để người dùng tự train hoặc tải từ link riêng)
+models/*.joblib
+models/*.pkl
+
+# Reports & Figures (Thường không đẩy các file csv báo cáo sinh ra tự động)
+reports/*.csv
+reports/*.json
+# reports/figures/*.png  <-- Có thể giữ lại nếu muốn hiện trong README, nhưng tốt nhất là ignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+.gemini/
+memory/
+COMPLIANCE_MAP.md
+REPORT_DRAFT.md
+DEMO_GUIDE.md
