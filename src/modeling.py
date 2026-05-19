@@ -142,11 +142,23 @@ def train_and_evaluate_models(
     trained_models: Dict[str, Pipeline] = {}
     rows = []
     for name, model in build_candidate_models().items():
+        # Áp dụng 5-Fold Cross Validation trên tập Train để có cái nhìn khách quan hơn
+        cv_scores = cross_val_score(model, X_train, y_train, cv=5, scoring='f1', n_jobs=-1)
+        mean_cv_f1 = cv_scores.mean()
+
+        # Huấn luyện trên toàn bộ tập Train
         model.fit(X_train, y_train)
         trained_models[name] = model
+        
+        # Đánh giá trên tập Hold-out (Test)
         metrics = evaluate_classifier(model, X_test, y_test)
-        rows.append({"model": name, **metrics})
+        rows.append({
+            "model": name, 
+            "cv_f1_score": mean_cv_f1, # Thêm điểm CV vào báo cáo
+            **metrics
+        })
 
+    # Sắp xếp dựa trên F1-score của tập Test
     metrics_df = pd.DataFrame(rows).sort_values(by="f1_score", ascending=False).reset_index(drop=True)
     return trained_models, metrics_df
 
