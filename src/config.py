@@ -18,7 +18,7 @@ DEFAULT_THRESHOLD = 0.50
 NUMERIC_FEATURES = ["tenure", "MonthlyCharges", "TotalCharges"]
 CATEGORICAL_FEATURES = [
     "gender",
-    "SeniorCitizen",
+    "SeniorCitizen",  # Đã được chuẩn hóa từ (0, 1) sang (No, Yes) để đồng nhất với các biến categorical khác
     "Partner",
     "Dependents",
     "PhoneService",

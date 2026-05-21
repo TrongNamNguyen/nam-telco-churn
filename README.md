@@ -8,10 +8,10 @@ Trong ngành viễn thông, việc duy trì khách hàng hiện tại có chi ph
 - **Nguồn:** IBM Telco Customer Churn.
 - **Quy mô:** 7,043 mẫu dữ liệu khách hàng.
 - **Đặc trưng (Features):** 21 cột thông tin bao gồm:
-- Thông tin nhân khẩu học (Giới tính, Người phụ thuộc...).
-- Thông tin dịch vụ (Internet, Streaming, Tech Support...).
-- Thông tin hợp đồng (Loại hợp đồng, Phương thức thanh toán, Chi phí...).
+  - Thông tin nhân khẩu học (Giới tính, Khách hàng cao tuổi, Người phụ thuộc...).
+  - Thông tin dịch vụ (Internet, Streaming, Tech Support...).- Thông tin hợp đồng (Loại hợp đồng, Phương thức thanh toán, Chi phí...).
 - **Tỉ lệ nhãn (Target):** ~26.5% khách hàng đã rời mạng (Churn = Yes).
+
 ## 🏗 Luồng hệ thống (System Flow)
 ```mermaid
 graph TD
