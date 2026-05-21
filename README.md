@@ -14,7 +14,7 @@ Trong ngành viễn thông, việc duy trì khách hàng hiện tại có chi ph
 - **Tỉ lệ nhãn (Target):** ~26.5% khách hàng đã rời mạng (Churn = Yes).
 ## 🏗 Luồng hệ thống (System Flow)
 ```mermaid
-   graph TD
+graph TD
    A[Dữ liệu thô (CSV)] --> B[Làm sạch & Đồng nhất định dạng]
    B --> C[Tiền xử lý & Feature Engineering]
    C --> D[Huấn luyện đồng thời 3 mô hình]
