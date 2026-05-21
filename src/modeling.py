@@ -15,7 +15,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 
-from src.config import CATEGORICAL_FEATURES, DEFAULT_THRESHOLD, NUMERIC_FEATURES, RANDOM_STATE
+from src.config import CATEGORICAL_FEATURES, DEFAULT_THRESHOLD, NUMERIC_FEATURES, RANDOM_STATE, N_JOBS
 from src.data_processing import normalize_customer_input
 
 
@@ -93,7 +93,7 @@ def build_candidate_models() -> OrderedDict[str, Pipeline]:
                             max_depth=10,
                             min_samples_leaf=8,
                             class_weight="balanced_subsample",
-                            n_jobs=-1,
+                            n_jobs=N_JOBS,
                             random_state=RANDOM_STATE,
                         ),
                     ),
@@ -143,7 +143,7 @@ def train_and_evaluate_models(
     rows = []
     for name, model in build_candidate_models().items():
         # Áp dụng 5-Fold Cross Validation trên tập Train để có cái nhìn khách quan hơn
-        cv_scores = cross_val_score(model, X_train, y_train, cv=5, scoring='f1', n_jobs=-1)
+        cv_scores = cross_val_score(model, X_train, y_train, cv=5, scoring='f1', n_jobs=N_JOBS)
         mean_cv_f1 = cv_scores.mean()
 
         # Huấn luyện trên toàn bộ tập Train
@@ -203,14 +203,23 @@ def evaluate_thresholds(
 
 
 def extract_feature_importance(model: Pipeline, top_n: int = 15) -> pd.DataFrame:
-    """Return top feature importances for models that expose feature_importances_."""
+    """
+    TRÍCH XUẤT ĐỘ QUAN TRỌNG CỦA ĐẶC TRƯNG:
+    - Với Random Forest/Decision Tree: Dùng feature_importances_.
+    - Với Logistic Regression: Dùng trị tuyệt đối của coef_.
+    """
     classifier = model.named_steps["model"]
-    if not hasattr(classifier, "feature_importances_"):
-        raise TypeError("Mô hình hiện tại không hỗ trợ feature_importances_.")
-
     preprocessor = model.named_steps["preprocess"]
     feature_names = preprocessor.get_feature_names_out()
-    importances = classifier.feature_importances_
+
+    if hasattr(classifier, "feature_importances_"):
+        importances = classifier.feature_importances_
+    elif hasattr(classifier, "coef_"):
+        # Với Logistic Regression, dùng trị tuyệt đối của hệ số (coefficients) làm độ quan trọng
+        importances = np.abs(classifier.coef_[0])
+    else:
+        raise TypeError("Mô hình hiện tại không hỗ trợ trích xuất độ quan trọng đặc trưng.")
+
     return (
         pd.DataFrame({"feature": feature_names, "importance": importances})
         .sort_values("importance", ascending=False)

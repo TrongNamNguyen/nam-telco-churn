@@ -1,9 +1,9 @@
+import pytest
 import subprocess
 import os
-import joblib
-import pandas as pd
-from src.config import MODEL_DIR, RAW_DATA_PATH
+from src.config import MODEL_DIR
 
+@pytest.mark.system
 def test_system_training_pipeline():
     """Kiểm tra xem chạy train.py có thực sự tạo ra các file output không."""
     # Chạy script train.py
@@ -13,14 +13,15 @@ def test_system_training_pipeline():
     assert result.returncode == 0
     
     # Kiểm tra các file quan trọng có tồn tại không
-    assert os.path.exists(MODEL_DIR / "best_churn_model.joblib")
+    assert (MODEL_DIR / "best_churn_model.joblib").exists()
     assert os.path.exists("reports/model_comparison.csv")
     assert os.path.exists("reports/figures/01_churn_distribution.png")
 
+@pytest.mark.system
 def test_system_prediction_cli():
     """Kiểm tra tool CLI predict.py."""
     # Đảm bảo có model trước
-    if not os.path.exists(MODEL_DIR / "best_churn_model.joblib"):
+    if not (MODEL_DIR / "best_churn_model.joblib").exists():
         subprocess.run(["python", "train.py"])
         
     # Chạy predict.py với ví dụ mặc định

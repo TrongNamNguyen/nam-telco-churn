@@ -3,6 +3,7 @@ import pandas as pd
 from src.data_processing import clean_telco_data, split_features_target
 from src.modeling import build_candidate_models
 
+@pytest.mark.integration
 def test_full_cleaning_and_splitting_flow():
     # Giả lập dữ liệu thô cực kỳ "bẩn"
     raw_data = pd.DataFrame({
@@ -39,6 +40,7 @@ def test_full_cleaning_and_splitting_flow():
     assert X.shape == (2, 19)
     assert y.tolist() == [0, 1]
 
+@pytest.mark.integration
 def test_pipeline_construction():
     models = build_candidate_models()
     assert "Logistic Regression" in models

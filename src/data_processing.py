@@ -37,9 +37,9 @@ def validate_schema(df: pd.DataFrame, *, require_target: bool = True) -> None:
 
 
 def _strip_text_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """Hàm phụ: Xóa khoảng trắng thừa ở đầu/cuối của các cột kiểu chữ."""
+    """Hàm phụ: Xóa khoảng trắng thừa ở đầu/cuối của các cột kiểu chữ, giữ nguyên NaN."""
     for col in df.select_dtypes(include=["object"]).columns:
-        df[col] = df[col].astype(str).str.strip()
+        df[col] = df[col].apply(lambda x: x.strip() if isinstance(x, str) else x)
     return df
 
 
@@ -102,9 +102,15 @@ def clean_telco_data(df: pd.DataFrame) -> pd.DataFrame:
     # 2. Đồng nhất SeniorCitizen
     df["SeniorCitizen"] = df["SeniorCitizen"].map(SENIOR_CITIZEN_MAP)
 
-    # 3. Làm sạch chuỗi và xóa trùng lặp
+    # 3. Làm sạch chuỗi
     df = _strip_text_columns(df)
-    df = df.drop_duplicates()
+    
+    # 4. Xóa trùng lặp (Ưu tiên kiểm tra theo customerID nếu có)
+    from src.config import ID_COLUMN
+    if ID_COLUMN in df.columns:
+        df = df.drop_duplicates(subset=[ID_COLUMN])
+    else:
+        df = df.drop_duplicates()
     
     return df
 

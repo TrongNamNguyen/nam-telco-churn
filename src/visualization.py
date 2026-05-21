@@ -23,7 +23,7 @@ def plot_target_distribution(df: pd.DataFrame, output_dir: Path = FIGURE_DIR) ->
     counts = df["Churn"].value_counts().reindex(["No", "Yes"])
     plt.figure(figsize=(6, 4))
     plt.bar(counts.index.astype(str), counts.values)
-    plt.title("Phân bố biến mục tiêu Churn")
+    plt.title("Phân bổ biến mục tiêu Churn")
     plt.xlabel("Churn")
     plt.ylabel("Số lượng khách hàng")
     for idx, value in enumerate(counts.values):
@@ -41,12 +41,24 @@ def plot_churn_by_category(df: pd.DataFrame, column: str, output_dir: Path = FIG
     )
     x = np.arange(len(rate_table.index))
     width = 0.38
-    plt.figure(figsize=(9, 4.8))
-    plt.bar(x - width / 2, rate_table["No"], width, label="No")
-    plt.bar(x + width / 2, rate_table["Yes"], width, label="Yes")
+    plt.figure(figsize=(10, 5))
+    bars_no = plt.bar(x - width / 2, rate_table["No"], width, label="No")
+    bars_yes = plt.bar(x + width / 2, rate_table["Yes"], width, label="Yes")
+    
+    # Thêm nhãn % lên đầu các cột
+    def add_labels(bars):
+        for bar in bars:
+            height = bar.get_height()
+            plt.text(bar.get_x() + bar.get_width()/2., height + 1,
+                    f'{height:.1f}%', ha='center', va='bottom', fontsize=9)
+
+    add_labels(bars_no)
+    add_labels(bars_yes)
+
     plt.title(f"Tỷ lệ Churn theo {column}")
     plt.ylabel("Tỷ lệ (%)")
     plt.xlabel(column)
+    plt.ylim(0, 115) # Tăng giới hạn y để đủ chỗ cho nhãn
     plt.xticks(x, rate_table.index.astype(str), rotation=20, ha="right")
     plt.legend(title="Churn")
     return _save_current_figure(path)
@@ -57,7 +69,7 @@ def plot_numeric_by_churn(df: pd.DataFrame, column: str, output_dir: Path = FIGU
     groups = [df.loc[df["Churn"] == label, column].dropna() for label in ["No", "Yes"]]
     plt.figure(figsize=(7, 4.5))
     plt.boxplot(groups, labels=["No", "Yes"], showmeans=True)
-    plt.title(f"Phân bố {column} theo Churn")
+    plt.title(f"Phân bổ {column} theo Churn")
     plt.xlabel("Churn")
     plt.ylabel(column)
     return _save_current_figure(path)
@@ -84,16 +96,23 @@ def plot_model_metrics(metrics_df: pd.DataFrame, output_dir: Path = FIGURE_DIR) 
 def plot_confusion_matrix(model, X_test, y_test, model_name: str, output_dir: Path = FIGURE_DIR) -> Path:
     path = output_dir / f"confusion_matrix_{model_name.lower().replace(' ', '_')}.png"
     matrix = get_confusion_matrix(model, X_test, y_test)
-    plt.figure(figsize=(5, 4))
-    plt.imshow(matrix)
-    plt.title(f"Confusion Matrix - {model_name}")
+    plt.figure(figsize=(6, 5))
+    plt.imshow(matrix, cmap='Blues')
+    plt.title(f"Ma trận nhầm lẫn (Confusion Matrix) - {model_name}")
     plt.xlabel("Dự đoán")
     plt.ylabel("Thực tế")
     plt.xticks([0, 1], ["No", "Yes"])
     plt.yticks([0, 1], ["No", "Yes"])
+    
+    # Gán nhãn thuật ngữ chuyên môn TN, FP, FN, TP
+    labels = [["TN", "FP"], ["FN", "TP"]]
     for i in range(matrix.shape[0]):
         for j in range(matrix.shape[1]):
-            plt.text(j, i, str(matrix[i, j]), ha="center", va="center")
+            val = matrix[i, j]
+            label = labels[i][j]
+            plt.text(j, i, f"{val}\n({label})", ha="center", va="center", 
+                     color="white" if val > matrix.max()/2 else "black", fontweight='bold')
+            
     plt.colorbar(fraction=0.046, pad=0.04)
     return _save_current_figure(path)
 
@@ -101,11 +120,11 @@ def plot_confusion_matrix(model, X_test, y_test, model_name: str, output_dir: Pa
 def plot_feature_importance(importance_df: pd.DataFrame, output_dir: Path = FIGURE_DIR) -> Path:
     path = output_dir / "feature_importance_top15.png"
     data = importance_df.sort_values("importance", ascending=True)
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(10, 7))
     plt.barh(data["feature"], data["importance"])
-    plt.title("Top 15 đặc trưng quan trọng của Random Forest")
-    plt.xlabel("Feature importance")
-    plt.ylabel("Đặc trưng")
+    plt.title("Các đặc trưng quan trọng nhất của mô hình")
+    plt.xlabel("Độ quan trọng (Importance)")
+    plt.ylabel("Đặc trưng (Features)")
     return _save_current_figure(path)
 
 
@@ -114,9 +133,10 @@ def plot_threshold_analysis(threshold_df: pd.DataFrame, output_dir: Path = FIGUR
     plt.figure(figsize=(8, 4.8))
     for metric in ["precision", "recall", "f1_score"]:
         plt.plot(threshold_df["threshold"], threshold_df[metric], marker="o", label=metric)
-    plt.title("Ảnh hưởng của ngưỡng dự đoán đến Precision, Recall và F1-score")
+    plt.title("Ảnh hưởng của ngưỡng dự đoán đến các chỉ số")
     plt.xlabel("Ngưỡng dự đoán")
     plt.ylabel("Điểm số")
     plt.ylim(0, 1)
+    plt.grid(True, linestyle='--', alpha=0.7)
     plt.legend()
     return _save_current_figure(path)

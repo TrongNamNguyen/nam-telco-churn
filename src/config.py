@@ -14,6 +14,7 @@ ID_COLUMN = "customerID"
 RANDOM_STATE = 42
 TEST_SIZE = 0.20
 DEFAULT_THRESHOLD = 0.50
+N_JOBS = 1  # Giới hạn CPU để tránh treo máy trên các môi trường cấu hình thấp
 
 NUMERIC_FEATURES = ["tenure", "MonthlyCharges", "TotalCharges"]
 CATEGORICAL_FEATURES = [

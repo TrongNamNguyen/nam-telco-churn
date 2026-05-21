@@ -16,12 +16,31 @@ def main() -> None:
     for col in ["tenure", "MonthlyCharges", "TotalCharges"]:
         plot_numeric_by_churn(df, col)
 
+    # Báo cáo thống kê mô tả
     overview = df.describe(include="all").transpose()
     overview.to_csv(REPORT_DIR / "data_overview.csv")
+    
+    # Báo cáo giá trị thiếu
     missing = df.isna().sum().rename("missing_count").to_frame()
     missing["missing_rate"] = missing["missing_count"] / len(df)
     missing.to_csv(REPORT_DIR / "missing_values.csv")
-    print(f"Đã tạo EDA tại thư mục {FIGURE_DIR}")
+
+    # Phân tích định lượng: Tỷ lệ Churn theo nhóm
+    churn_analysis_rows = []
+    for col in ["Contract", "InternetService", "PaymentMethod"]:
+        # Tính toán tỷ lệ Churn
+        stats = df.groupby(col)["Churn"].value_counts(normalize=True).unstack().fillna(0)
+        if "Yes" in stats.columns:
+            stats = stats[["Yes"]].rename(columns={"Yes": "Churn_Rate"})
+            stats = stats.sort_values("Churn_Rate", ascending=False)
+            
+            # Lưu từng bảng riêng hoặc gom lại
+            stats.to_csv(REPORT_DIR / f"churn_rate_by_{col}.csv")
+            print(f"\n--- Tỷ lệ Churn theo {col} ---")
+            print(stats)
+
+    print(f"\nĐã tạo EDA tại thư mục {FIGURE_DIR}")
+    print(f"Đã lưu các báo cáo định lượng tại {REPORT_DIR}")
 
 
 if __name__ == "__main__":

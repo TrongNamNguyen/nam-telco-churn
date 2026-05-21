@@ -39,7 +39,16 @@ def main() -> None:
     if not args.model_path.exists():
         raise FileNotFoundError("Chưa có mô hình. Hãy chạy: python train.py")
 
-    customer = json.loads(args.json) if args.json else make_single_customer_example()
+    # Xử lý đầu vào JSON (có thể là chuỗi JSON hoặc đường dẫn file)
+    if args.json:
+        if Path(args.json).exists():
+            with open(args.json, "r", encoding="utf-8") as f:
+                customer = json.load(f)
+        else:
+            customer = json.loads(args.json)
+    else:
+        customer = make_single_customer_example()
+
     model = joblib.load(args.model_path)
     result = predict_churn_probability(model, customer, threshold=args.threshold)
     probability = float(result.loc[0, "churn_probability"])

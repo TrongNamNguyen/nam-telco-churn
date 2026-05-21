@@ -1,15 +1,19 @@
 import pytest
 import pandas as pd
 import numpy as np
-from src.data_processing import _strip_text_columns, _fix_total_charges, validate_schema, SENIOR_CITIZEN_MAP
+from src.data_processing import _strip_text_columns, _fix_total_charges, validate_schema
 from src.modeling import predict_binary_from_probability
 
+@pytest.mark.unit
 def test_strip_text_columns():
-    df = pd.DataFrame({"col1": ["  A  ", "B  "], "col2": [1, 2]})
+    df = pd.DataFrame({"col1": ["  A  ", "B  ", np.nan], "col2": [1, 2, 3]})
     result = _strip_text_columns(df)
-    assert result["col1"].tolist() == ["A", "B"]
-    assert result["col2"].tolist() == [1, 2]
+    assert result.loc[0, "col1"] == "A"
+    assert result.loc[1, "col1"] == "B"
+    assert pd.isna(result.loc[2, "col1"])
+    assert result["col2"].tolist() == [1, 2, 3]
 
+@pytest.mark.unit
 def test_fix_total_charges_logic():
     df = pd.DataFrame({
         "tenure": [0, 2, 5],
@@ -24,11 +28,13 @@ def test_fix_total_charges_logic():
     # 5 * 20 = 100
     assert result.loc[2, "TotalCharges"] == 100.0
 
+@pytest.mark.unit
 def test_validate_schema_missing_col():
     df = pd.DataFrame({"wrong_col": [1]})
     with pytest.raises(ValueError, match="Dữ liệu thiếu các cột bắt buộc"):
         validate_schema(df, require_target=True)
 
+@pytest.mark.unit
 def test_predict_binary_threshold():
     probs = np.array([0.1, 0.4, 0.6, 0.9])
     # Threshold 0.5

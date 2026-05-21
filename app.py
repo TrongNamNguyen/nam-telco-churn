@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import joblib
 import pandas as pd
+import numpy as np
 import streamlit as st
 
 from src.config import DEFAULT_THRESHOLD, MODEL_DIR
@@ -59,6 +60,18 @@ def main() -> None:
             submitted = st.form_submit_button("Dự đoán Churn")
 
         if submitted:
+            # Xử lý logic nghiệp vụ để tránh mâu thuẫn dữ liệu
+            if phone_service == "No":
+                multiple_lines = "No phone service"
+            
+            if internet_service == "No":
+                online_security = "No internet service"
+                online_backup = "No internet service"
+                device_protection = "No internet service"
+                tech_support = "No internet service"
+                streaming_tv = "No internet service"
+                streaming_movies = "No internet service"
+
             customer = pd.DataFrame(
                 [
                     {
@@ -96,6 +109,10 @@ def main() -> None:
 
     with tab2:
         st.subheader("Dự đoán cho danh sách khách hàng")
+        st.info(
+            "Tải lên file CSV chứa thông tin khách hàng. File cần có các cột tương tự tập dữ liệu gốc "
+            "(ngoại trừ cột Churn). Các giá trị rỗng sẽ được hệ thống tự động xử lý theo logic ETL."
+        )
         uploaded_file = st.file_uploader("Tải file CSV khách hàng", type=["csv"])
         if uploaded_file is not None:
             input_df = pd.read_csv(uploaded_file)

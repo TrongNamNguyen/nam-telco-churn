@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import time
+from datetime import datetime
 
 import joblib
 from sklearn.model_selection import train_test_split
@@ -28,14 +30,26 @@ def main() -> None:
     7. Lưu mô hình tốt nhất (F1-score cao nhất) vào ổ cứng để dùng cho Web.
     8. Xuất các báo cáo và biểu đồ (Ma trận nhầm lẫn, Feature Importance).
     """
+    start_time = time.time()
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] Bắt đầu quy trình huấn luyện...")
+
     # Tạo thư mục nếu chưa có
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
 
     # Nạp và làm sạch
-    raw_df = load_telco_data(RAW_DATA_PATH)
+    try:
+        raw_df = load_telco_data(RAW_DATA_PATH)
+        if raw_df.empty:
+            print("Lỗi: File dữ liệu rỗng.")
+            return
+    except Exception as e:
+        print(f"Lỗi khi nạp dữ liệu: {e}")
+        return
+
     df = clean_telco_data(raw_df)
+    print(f"Dữ liệu sau khi làm sạch: {df.shape[0]} dòng, {df.shape[1]} cột.")
     
     # Chia đặc trưng và mục tiêu
     X, y = split_features_target(df)
@@ -71,12 +85,10 @@ def main() -> None:
     plot_threshold_analysis(threshold_df)
 
     # Nếu mô hình tốt nhất là Random Forest, ta xem yếu tố nào quan trọng nhất
-    feature_importance_path = None
     if best_model_name == "Random Forest":
         importance_df = extract_feature_importance(best_model, top_n=15)
         importance_df.to_csv(REPORT_DIR / "feature_importance_top15.csv", index=False)
         plot_feature_importance(importance_df)
-        feature_importance_path = str(REPORT_DIR / "feature_importance_top15.csv")
 
     # Lưu tóm tắt vào file JSON
     summary = {
@@ -91,10 +103,17 @@ def main() -> None:
         encoding="utf-8",
     )
 
-    print("Huấn luyện hoàn tất.")
+    print("\n" + "="*50)
+    print("HUẤN LUYỆN HOÀN TẤT.")
     print(metrics_df.to_string(index=False))
-    print(f"Mô hình tốt nhất: {best_model_name}")
+    print(f"\nMô hình tốt nhất: {best_model_name}")
     print(f"Đã lưu mô hình tại: {MODEL_DIR / 'best_churn_model.joblib'}")
+    print(f"Đã lưu báo cáo tại: {REPORT_DIR}")
+    print(f"Đã lưu biểu đồ tại: {FIGURE_DIR}")
+    
+    elapsed_time = time.time() - start_time
+    print(f"Tổng thời gian thực thi: {elapsed_time:.2f} giây.")
+    print("="*50)
 
 
 if __name__ == "__main__":
