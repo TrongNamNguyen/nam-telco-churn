@@ -38,6 +38,9 @@ Sau quá trình huấn luyện và so sánh giữa Logistic Regression, Decision
 
 ## 📂 Cấu trúc dự án
 - `src/`: Chứa mã nguồn logic chính (Clean, Train, Plot).
-- `data/raw/`: Chứa tệp dữ liệu gốc `WA_Fn-UseC_-Telco-Customer-Churn.csv`.
+- `data/`: Chứa dữ liệu thô (CSV).
 - `models/`: Lưu trữ mô hình đã huấn luyện thành công.
 - `reports/`: Chứa các báo cáo định lượng và biểu đồ phân tích (Confusion Matrix, Feature Importance).
+- `tests/`: Bộ kiểm thử tự động.
+- `train.py`: Quy trình huấn luyện toàn diện.
+- `app.py`: Ứng dụng Web Streamlit.
