@@ -15,13 +15,13 @@ Trong ngành viễn thông, việc duy trì khách hàng hiện tại có chi ph
 ## 🏗 Luồng hệ thống (System Flow)
 ```mermaid
 graph TD
-   A[Dữ liệu thô (CSV)] --> B[Làm sạch & Đồng nhất định dạng]
-   B --> C[Tiền xử lý & Feature Engineering]
-   C --> D[Huấn luyện đồng thời 3 mô hình]
-   D --> E[Đánh giá qua Precision/Recall/F1]
-   E --> F[Lưu mô hình tốt nhất (.joblib)]
-   F --> G[Triển khai Streamlit Web App]
-   G --> H[Dự đoán đơn lẻ/theo lô]
+   A["Dữ liệu thô (CSV)"] --> B["Làm sạch & Đồng nhất định dạng"]
+   B --> C["Tiền xử lý & Feature Engineering"]
+   C --> D["Huấn luyện đồng thời 3 mô hình"]
+   D --> E["Đánh giá qua Precision/Recall/F1"]
+   E --> F["Lưu mô hình tốt nhất (.joblib)"]
+   F --> G["Triển khai Streamlit Web App"]
+   G --> H["Dự đoán đơn lẻ / Theo lô"]
 ```
 
 ## 📊 Kết quả thực nghiệm
