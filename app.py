@@ -118,6 +118,8 @@ def main() -> None:
             input_df = pd.read_csv(uploaded_file)
             try:
                 with st.spinner("Đang xử lý..."):
+                    # Reset index để tránh lỗi lệch index khi concat với kết quả dự đoán (vốn có index 0, 1, 2...)
+                    input_df = input_df.reset_index(drop=True)
                     results = predict_churn_probability(model, input_df, threshold=DEFAULT_THRESHOLD)
                     final_df = pd.concat([input_df, results], axis=1)
                     st.write(f"Đã dự đoán cho {len(final_df)} khách hàng.")
