@@ -7,7 +7,7 @@ from src.config import MODEL_DIR
 def test_system_training_pipeline():
     """Kiểm tra xem chạy train.py có thực sự tạo ra các file output không."""
     # Chạy script train.py
-    result = subprocess.run(["python", "train.py"], capture_output=True, text=True)
+    result = subprocess.run(["python", "train.py"], capture_output=True, text=True, encoding="utf-8")
     
     # Kiểm tra xem có lỗi không (Exit code 0)
     assert result.returncode == 0
@@ -22,10 +22,10 @@ def test_system_prediction_cli():
     """Kiểm tra tool CLI predict.py."""
     # Đảm bảo có model trước
     if not (MODEL_DIR / "best_churn_model.joblib").exists():
-        subprocess.run(["python", "train.py"])
+        subprocess.run(["python", "train.py"], encoding="utf-8")
         
     # Chạy predict.py với ví dụ mặc định
-    result = subprocess.run(["python", "predict.py"], capture_output=True, text=True)
+    result = subprocess.run(["python", "predict.py"], capture_output=True, text=True, encoding="utf-8")
     assert result.returncode == 0
     assert "prediction_label" in result.stdout
     assert "churn_probability" in result.stdout
