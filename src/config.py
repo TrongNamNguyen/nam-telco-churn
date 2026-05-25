@@ -19,7 +19,7 @@ N_JOBS = 1  # Giới hạn CPU để tránh treo máy trên các môi trường 
 NUMERIC_FEATURES = ["tenure", "MonthlyCharges", "TotalCharges"]
 CATEGORICAL_FEATURES = [
     "gender",
-    "SeniorCitizen",  # Đã được chuẩn hóa từ (0, 1) sang (No, Yes) để đồng nhất với các biến categorical khác
+    "SeniorCitizen",  
     "Partner",
     "Dependents",
     "PhoneService",

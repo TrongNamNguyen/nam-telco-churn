@@ -1,5 +1,4 @@
 # 📉 Hệ thống dự báo rời bỏ dịch vụ (Customer Churn Prediction)
-
 Dự án này tập trung vào việc xây dựng một hệ thống học máy (Machine Learning) toàn diện nhằm dự đoán khả năng rời bỏ mạng của khách hàng viễn thông. Hệ thống được thiết kế theo quy chuẩn công nghiệp, bao gồm các giai đoạn từ xử lý dữ liệu (ETL), huấn luyện mô hình, đánh giá chuyên sâu cho đến triển khai ứng dụng Web phục vụ ra quyết định kinh doanh.
 
 ## 📖 Giới thiệu bài toán
@@ -9,7 +8,7 @@ Trong ngành viễn thông, việc duy trì khách hàng hiện tại có chi ph
 - **Nguồn:** IBM Telco Customer Churn.
 - **Quy mô:** 7,043 mẫu dữ liệu khách hàng.
 - **Đặc trưng (Features):** 21 cột thông tin bao gồm:
-  - Thông tin nhân khẩu học (Giới tính, Khách hàng cao tuổi - đã chuẩn hóa 0/1 sang No/Yes, Người phụ thuộc...).
+  - Thông tin nhân khẩu học (Giới tính, Khách hàng cao tuổi, Người phụ thuộc...).
   - Thông tin dịch vụ (Internet, Streaming, Tech Support...).
   - Thông tin hợp đồng (Loại hợp đồng, Phương thức thanh toán, Chi phí...).
 - **Tỉ lệ nhãn (Target):** ~26.5% khách hàng đã rời mạng (Churn = Yes).
@@ -51,7 +50,6 @@ Sau quá trình huấn luyện và so sánh giữa Logistic Regression, Decision
 - `sample_customer.json`: Dữ liệu khách hàng mẫu để chạy thử.
 
 ## 🛠 Hướng dẫn cài đặt & Vận hành
-
 ### 1. Cài đặt môi trường
 Yêu cầu Python 3.9+. Cài đặt các thư viện cần thiết:
 ```bash
@@ -77,7 +75,7 @@ streamlit run app.py
 ```
 
 ### 5. Dự đoán qua CLI (Dành cho 1 khách hàng)
-Bạn có thể dự đoán nhanh cho một khách hàng bằng file mẫu hoặc chuỗi JSON:
+Dự đoán nhanh cho một khách hàng bằng file mẫu hoặc chuỗi JSON:
 ```bash
 # Sử dụng dữ liệu mẫu mặc định trong code
 python predict.py
