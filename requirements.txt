@@ -1,9 +1,21 @@
-pandas==2.2.2
-numpy==1.26.4
-scikit-learn==1.4.2
-matplotlib==3.8.4
-seaborn==0.13.2
-joblib==1.4.2
-streamlit==1.35.0
-jupyter==1.0.0
-pytest==8.2.2
+# Core ML stack
+pandas>=2.2.2
+numpy>=1.26.4
+scikit-learn>=1.4.2
+matplotlib>=3.8.4
+seaborn>=0.13.2
+joblib>=1.4.2
+
+# Web application
+streamlit>=1.35.0
+
+# Development & notebooks
+jupyter>=1.0.0
+pytest>=8.2.2
+
+# Note: The saved model (models/best_churn_model.joblib) was serialized with
+# a specific scikit-learn version. If sklearn is upgraded significantly, retrain
+# the model by running `python train.py` to avoid version mismatch warnings.
+#
+# Windows users: set PYTHONIOENCODING=utf-8 in your environment to ensure
+# correct display of Vietnamese characters in the terminal.

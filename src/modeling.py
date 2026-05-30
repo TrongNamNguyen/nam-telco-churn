@@ -109,7 +109,7 @@ def predict_binary_from_probability(probability: np.ndarray, threshold: float = 
     - Nếu xác suất >= ngưỡng (ví dụ 0.5) thì là 1 (Churn), ngược lại là 0.
     """
     if not 0 < threshold < 1:
-        raise ValueError("threshold phải nằm trong khoảng (0, 1).")
+        raise ValueError("threshold must be in the open interval (0, 1), got: {:.4f}".format(threshold))
     return (probability >= threshold).astype(int)
 
 

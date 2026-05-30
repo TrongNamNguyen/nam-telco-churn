@@ -29,6 +29,7 @@ def main() -> None:
     6. Huấn luyện đồng thời 3 mô hình và so sánh.
     7. Lưu mô hình tốt nhất (F1-score cao nhất) vào ổ cứng để dùng cho Web.
     8. Xuất các báo cáo và biểu đồ (Ma trận nhầm lẫn, Feature Importance).
+       Feature Importance được trích xuất với mọi loại mô hình (RF, DT, LR).
     """
     start_time = time.time()
     print(f"[{datetime.now().strftime('%H:%M:%S')}] Bắt đầu quy trình huấn luyện...")
@@ -84,11 +85,10 @@ def main() -> None:
     threshold_df.to_csv(REPORT_DIR / "threshold_analysis.csv", index=False)
     plot_threshold_analysis(threshold_df)
 
-    # Nếu mô hình tốt nhất là Random Forest, ta xem yếu tố nào quan trọng nhất
-    if best_model_name == "Random Forest":
-        importance_df = extract_feature_importance(best_model, top_n=15)
-        importance_df.to_csv(REPORT_DIR / "feature_importance_top15.csv", index=False)
-        plot_feature_importance(importance_df)
+    # Trích xuất và lưu độ quan trọng đặc trưng (hỗ trợ RF, DT và Logistic Regression)
+    importance_df = extract_feature_importance(best_model, top_n=15)
+    importance_df.to_csv(REPORT_DIR / "feature_importance_top15.csv", index=False)
+    plot_feature_importance(importance_df)
 
     # Lưu tóm tắt vào file JSON
     summary = {

@@ -122,8 +122,8 @@ def main() -> None:
                     input_df = input_df.reset_index(drop=True)
                     results = predict_churn_probability(model, input_df, threshold=DEFAULT_THRESHOLD)
                     final_df = pd.concat([input_df, results], axis=1)
-                    st.write(f"Đã dự đoán cho {len(final_df)} khách hàng.")
-                    st.dataframe(final_df.head())
+                    st.write(f"Đã dự đoán cho **{len(final_df)}** khách hàng. Hiển thị 20 dòng đầu:")
+                    st.dataframe(final_df.head(20))
                     
                     csv = final_df.to_csv(index=False).encode('utf-8')
                     st.download_button("Tải kết quả dự đoán (.csv)", csv, "churn_predictions.csv", "text/csv")

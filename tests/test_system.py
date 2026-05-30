@@ -16,7 +16,7 @@ def test_system_training_pipeline():
     # Kiểm tra các file quan trọng có tồn tại không
     assert (MODEL_DIR / "best_churn_model.joblib").exists()
     assert os.path.exists("reports/model_comparison.csv")
-    assert os.path.exists("reports/figures/01_churn_distribution.png")
+    assert os.path.exists("reports/figures/model_metric_comparison.png")
 
 @pytest.mark.system
 def test_system_prediction_cli():
