@@ -29,49 +29,113 @@ def main() -> None:
     tab1, tab2 = st.tabs(["Dự đoán đơn lẻ", "Dự đoán theo lô (File)"])
 
     with tab1:
-        with st.form("customer_form"):
-            col1, col2 = st.columns(2)
-            with col1:
-                gender = st.selectbox("Giới tính", ["Female", "Male"])
-                senior = st.selectbox("Khách hàng cao tuổi", ["No", "Yes"], format_func=lambda x: "Có" if x == "Yes" else "Không")
-                partner = st.selectbox("Có vợ/chồng/đối tác", ["No", "Yes"])
-                dependents = st.selectbox("Có người phụ thuộc", ["No", "Yes"])
-                tenure = st.slider("Số tháng sử dụng dịch vụ", 0, 72, 12)
-                phone_service = st.selectbox("Dịch vụ điện thoại", ["No", "Yes"])
-                multiple_lines = st.selectbox("Nhiều đường dây", ["No phone service", "No", "Yes"])
-                internet_service = st.selectbox("Dịch vụ Internet", ["DSL", "Fiber optic", "No"])
-                online_security = st.selectbox("Online Security", ["No", "Yes", "No internet service"])
-                online_backup = st.selectbox("Online Backup", ["No", "Yes", "No internet service"])
-            with col2:
-                device_protection = st.selectbox("Device Protection", ["No", "Yes", "No internet service"])
-                tech_support = st.selectbox("Tech Support", ["No", "Yes", "No internet service"])
-                streaming_tv = st.selectbox("Streaming TV", ["No", "Yes", "No internet service"])
-                streaming_movies = st.selectbox("Streaming Movies", ["No", "Yes", "No internet service"])
-                contract = st.selectbox("Loại hợp đồng", ["Month-to-month", "One year", "Two year"])
-                paperless_billing = st.selectbox("Hóa đơn điện tử", ["No", "Yes"])
-                payment_method = st.selectbox(
-                    "Phương thức thanh toán",
-                    ["Electronic check", "Mailed check", "Bank transfer (automatic)", "Credit card (automatic)"],
-                )
-                monthly_charges = st.number_input("Chi phí hàng tháng", min_value=0.0, max_value=200.0, value=70.0)
-                total_charges = st.number_input("Tổng chi tiêu", min_value=0.0, max_value=10000.0, value=840.0)
-                threshold = st.slider("Ngưỡng dự đoán", 0.30, 0.70, DEFAULT_THRESHOLD, 0.05)
+        col1, col2 = st.columns(2)
 
-            submitted = st.form_submit_button("Dự đoán Churn")
+        with col1:
+            gender = st.selectbox("Giới tính", ["Female", "Male"], key="gender")
+            senior = st.selectbox(
+                "Khách hàng cao tuổi", ["No", "Yes"],
+                format_func=lambda x: "Có" if x == "Yes" else "Không",
+                key="senior",
+            )
+            partner = st.selectbox("Có vợ/chồng/đối tác", ["No", "Yes"], key="partner")
+            dependents = st.selectbox("Có người phụ thuộc", ["No", "Yes"], key="dependents")
+            tenure = st.slider("Số tháng sử dụng dịch vụ", 0, 72, 12, key="tenure")
 
-        if submitted:
-            # Xử lý logic nghiệp vụ để tránh mâu thuẫn dữ liệu
-            if phone_service == "No":
+            # --- PhoneService & MultipleLines (phụ thuộc) ---
+            phone_service = st.selectbox("Dịch vụ điện thoại", ["No", "Yes"], key="phone_service")
+            no_phone = phone_service == "No"
+            multiple_lines = st.selectbox(
+                "Nhiều đường dây",
+                options=["No phone service"] if no_phone else ["No", "Yes"],
+                disabled=no_phone,
+                key="multiple_lines",
+                help="Không khả dụng khi không có dịch vụ điện thoại." if no_phone else None,
+            )
+            if no_phone:
                 multiple_lines = "No phone service"
-            
-            if internet_service == "No":
+
+            # --- InternetService & các dịch vụ phụ thuộc (cột 1) ---
+            internet_service = st.selectbox("Dịch vụ Internet", ["DSL", "Fiber optic", "No"], key="internet_service")
+            no_internet = internet_service == "No"
+            inet_help = "Không khả dụng khi không có dịch vụ Internet." if no_internet else None
+
+            online_security = st.selectbox(
+                "Online Security",
+                options=["No internet service"] if no_internet else ["No", "Yes"],
+                disabled=no_internet,
+                key="online_security",
+                help=inet_help,
+            )
+            if no_internet:
                 online_security = "No internet service"
+
+            online_backup = st.selectbox(
+                "Online Backup",
+                options=["No internet service"] if no_internet else ["No", "Yes"],
+                disabled=no_internet,
+                key="online_backup",
+                help=inet_help,
+            )
+            if no_internet:
                 online_backup = "No internet service"
+
+        with col2:
+            device_protection = st.selectbox(
+                "Device Protection",
+                options=["No internet service"] if no_internet else ["No", "Yes"],
+                disabled=no_internet,
+                key="device_protection",
+                help=inet_help,
+            )
+            if no_internet:
                 device_protection = "No internet service"
+
+            tech_support = st.selectbox(
+                "Tech Support",
+                options=["No internet service"] if no_internet else ["No", "Yes"],
+                disabled=no_internet,
+                key="tech_support",
+                help=inet_help,
+            )
+            if no_internet:
                 tech_support = "No internet service"
+
+            streaming_tv = st.selectbox(
+                "Streaming TV",
+                options=["No internet service"] if no_internet else ["No", "Yes"],
+                disabled=no_internet,
+                key="streaming_tv",
+                help=inet_help,
+            )
+            if no_internet:
                 streaming_tv = "No internet service"
+
+            streaming_movies = st.selectbox(
+                "Streaming Movies",
+                options=["No internet service"] if no_internet else ["No", "Yes"],
+                disabled=no_internet,
+                key="streaming_movies",
+                help=inet_help,
+            )
+            if no_internet:
                 streaming_movies = "No internet service"
 
+            contract = st.selectbox("Loại hợp đồng", ["Month-to-month", "One year", "Two year"], key="contract")
+            paperless_billing = st.selectbox("Hóa đơn điện tử", ["No", "Yes"], key="paperless_billing")
+            payment_method = st.selectbox(
+                "Phương thức thanh toán",
+                ["Electronic check", "Mailed check", "Bank transfer (automatic)", "Credit card (automatic)"],
+                key="payment_method",
+            )
+            monthly_charges = st.number_input("Chi phí hàng tháng", min_value=0.0, max_value=200.0, value=70.0, key="monthly_charges")
+            total_charges = st.number_input("Tổng chi tiêu", min_value=0.0, max_value=10000.0, value=840.0, key="total_charges")
+            threshold = st.slider("Ngưỡng dự đoán", 0.30, 0.70, DEFAULT_THRESHOLD, 0.05, key="threshold")
+
+        st.divider()
+        submitted = st.button("🔍 Dự đoán Churn", type="primary", use_container_width=True)
+
+        if submitted:
             customer = pd.DataFrame(
                 [
                     {
@@ -98,14 +162,21 @@ def main() -> None:
                 ]
             )
             result = predict_churn_probability(model, customer, threshold=threshold)
-            probability = float(result.loc[0, "churn_probability"])
-            label = result.loc[0, "prediction_label"]
+            st.session_state["pred_result"] = {
+                "probability": float(result.loc[0, "churn_probability"]),
+                "label": result.loc[0, "prediction_label"],
+            }
+
+        if "pred_result" in st.session_state:
+            probability = st.session_state["pred_result"]["probability"]
+            label = st.session_state["pred_result"]["label"]
             risk = "Cao" if probability >= 0.7 else "Trung bình" if probability >= 0.4 else "Thấp"
+            risk_color = "🔴" if risk == "Cao" else "🟡" if risk == "Trung bình" else "🟢"
 
             st.subheader("Kết quả dự đoán")
             st.metric("Xác suất Churn", f"{probability:.2%}")
             st.write(f"**Dự đoán:** {'Có khả năng rời bỏ dịch vụ' if label == 'Yes' else 'Ít khả năng rời bỏ dịch vụ'}")
-            st.write(f"**Mức rủi ro:** {risk}")
+            st.write(f"**Mức rủi ro:** {risk_color} {risk}")
 
     with tab2:
         st.subheader("Dự đoán cho danh sách khách hàng")
