@@ -45,7 +45,12 @@ def main() -> None:
             with open(args.json, "r", encoding="utf-8") as f:
                 customer = json.load(f)
         else:
-            customer = json.loads(args.json)
+            try:
+                customer = json.loads(args.json)
+            except json.JSONDecodeError as exc:
+                raise SystemExit(
+                    f"Lỗi: Giá trị --json không phải file hợp lệ và không parse được như JSON: {exc}"
+                ) from exc
     else:
         customer = make_single_customer_example()
 

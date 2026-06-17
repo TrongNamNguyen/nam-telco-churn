@@ -1,8 +1,7 @@
 import pytest
 import subprocess
-import os
 import sys
-from src.config import MODEL_DIR
+from src.config import MODEL_DIR, REPORT_DIR, FIGURE_DIR
 
 @pytest.mark.system
 def test_system_training_pipeline():
@@ -15,8 +14,8 @@ def test_system_training_pipeline():
     
     # Kiểm tra các file quan trọng có tồn tại không
     assert (MODEL_DIR / "best_churn_model.joblib").exists()
-    assert os.path.exists("reports/model_comparison.csv")
-    assert os.path.exists("reports/figures/model_metric_comparison.png")
+    assert (REPORT_DIR / "model_comparison.csv").exists()
+    assert (FIGURE_DIR / "model_metric_comparison.png").exists()
 
 @pytest.mark.system
 def test_system_prediction_cli():

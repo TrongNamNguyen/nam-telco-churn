@@ -26,7 +26,6 @@ def main() -> None:
     missing.to_csv(REPORT_DIR / "missing_values.csv")
 
     # Phân tích định lượng: Tỷ lệ Churn theo nhóm
-    churn_analysis_rows = []
     for col in ["Contract", "InternetService", "PaymentMethod"]:
         # Tính toán tỷ lệ Churn
         stats = df.groupby(col)["Churn"].value_counts(normalize=True).unstack().fillna(0)

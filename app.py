@@ -2,13 +2,78 @@ from __future__ import annotations
 
 import joblib
 import pandas as pd
-import numpy as np
 import streamlit as st
 
 from src.config import DEFAULT_THRESHOLD, MODEL_DIR
 from src.modeling import predict_churn_probability
 
 MODEL_PATH = MODEL_DIR / "best_churn_model.joblib"
+
+
+# Preset definitions - mỗi preset chứa tất cả giá trị cần thiết để điền form.
+# Key trong "values" phải khớp chính xác với key= của từng widget Streamlit.
+CUSTOMER_PRESETS = {
+    "high_risk": {
+        "label": "🔴 Rủi ro cao",
+        "description": "Month-to-month, Fiber optic, tenure thấp, Electronic check",
+        "values": {
+            "gender": "Female", "senior": "No", "partner": "No", "dependents": "No",
+            "tenure": 2, "phone_service": "Yes", "multiple_lines": "No",
+            "internet_service": "Fiber optic", "online_security": "No",
+            "online_backup": "No", "device_protection": "No", "tech_support": "No",
+            "streaming_tv": "Yes", "streaming_movies": "Yes",
+            "contract": "Month-to-month", "paperless_billing": "Yes",
+            "payment_method": "Electronic check",
+            "monthly_charges": 90.0, "total_charges": 180.0,
+            "threshold": DEFAULT_THRESHOLD,
+        },
+    },
+    "low_risk": {
+        "label": "🟢 Rủi ro thấp",
+        "description": "Two year, DSL, tenure cao, Credit card (automatic)",
+        "values": {
+            "gender": "Male", "senior": "No", "partner": "Yes", "dependents": "Yes",
+            "tenure": 60, "phone_service": "Yes", "multiple_lines": "Yes",
+            "internet_service": "DSL", "online_security": "Yes",
+            "online_backup": "Yes", "device_protection": "Yes", "tech_support": "Yes",
+            "streaming_tv": "No", "streaming_movies": "No",
+            "contract": "Two year", "paperless_billing": "No",
+            "payment_method": "Credit card (automatic)",
+            "monthly_charges": 55.0, "total_charges": 3300.0,
+            "threshold": DEFAULT_THRESHOLD,
+        },
+    },
+    "senior": {
+        "label": "👴 Khách cao tuổi",
+        "description": "SeniorCitizen, Fiber optic, chi phí cao",
+        "values": {
+            "gender": "Male", "senior": "Yes", "partner": "No", "dependents": "No",
+            "tenure": 10, "phone_service": "Yes", "multiple_lines": "No",
+            "internet_service": "Fiber optic", "online_security": "No",
+            "online_backup": "Yes", "device_protection": "Yes", "tech_support": "No",
+            "streaming_tv": "Yes", "streaming_movies": "No",
+            "contract": "Month-to-month", "paperless_billing": "Yes",
+            "payment_method": "Electronic check",
+            "monthly_charges": 85.0, "total_charges": 850.0,
+            "threshold": DEFAULT_THRESHOLD,
+        },
+    },
+    "new_customer": {
+        "label": "🆕 Khách mới",
+        "description": "Tenure = 1, dịch vụ cơ bản, DSL",
+        "values": {
+            "gender": "Female", "senior": "No", "partner": "No", "dependents": "No",
+            "tenure": 1, "phone_service": "Yes", "multiple_lines": "No",
+            "internet_service": "DSL", "online_security": "No",
+            "online_backup": "No", "device_protection": "No", "tech_support": "Yes",
+            "streaming_tv": "No", "streaming_movies": "No",
+            "contract": "Month-to-month", "paperless_billing": "Yes",
+            "payment_method": "Bank transfer (automatic)",
+            "monthly_charges": 45.0, "total_charges": 45.0,
+            "threshold": DEFAULT_THRESHOLD,
+        },
+    },
+}
 
 
 @st.cache_resource
@@ -19,46 +84,79 @@ def load_model():
     return joblib.load(MODEL_PATH)
 
 
+def _apply_preset(preset_key: str) -> None:
+    """Callback: điền toàn bộ session_state để mọi widget tự động nhận giá trị preset."""
+    preset = CUSTOMER_PRESETS[preset_key]["values"].copy()
+    # Đảm bảo các trường phụ thuộc nhất quán với dịch vụ cha
+    if preset.get("internet_service") == "No":
+        for field in ("online_security", "online_backup", "device_protection",
+                      "tech_support", "streaming_tv", "streaming_movies"):
+            preset[field] = "No internet service"
+    if preset.get("phone_service") == "No":
+        preset["multiple_lines"] = "No phone service"
+    for key, value in preset.items():
+        st.session_state[key] = value
+
+
 def main() -> None:
-    st.set_page_config(page_title="Telco Customer Churn Prediction", page_icon="📉", layout="centered")
-    st.title("📉 Hệ thống dự đoán Customer Churn")
+    st.set_page_config(page_title="Telco Customer Churn Prediction", page_icon="📉", layout="wide")
+    st.title("📉 Customer Churn Prediction System")
     st.write("Nhập thông tin khách hàng để dự đoán khả năng rời bỏ dịch vụ.")
+
+    # Khởi tạo lịch sử dự đoán (tồn tại trong phiên làm việc)
+    if "prediction_history" not in st.session_state:
+        st.session_state["prediction_history"] = []
 
     model = load_model()
 
-    tab1, tab2 = st.tabs(["Dự đoán đơn lẻ", "Dự đoán theo lô (File)"])
+    tab1, tab2 = st.tabs(["Single Prediction", "Bulk Prediction (File)"])
 
     with tab1:
+        # Feature 1: Quick-Fill Preset Buttons 
+        st.subheader("📋 Quick-Fill Templates")
+        preset_cols = st.columns(len(CUSTOMER_PRESETS))
+        for col, (key, preset) in zip(preset_cols, CUSTOMER_PRESETS.items()):
+            with col:
+                st.button(
+                    preset["label"],
+                    help=preset["description"],
+                    on_click=_apply_preset,
+                    args=(key,),
+                    use_container_width=True,
+                )
+        st.divider()
+
+        # Form Inputs 
         col1, col2 = st.columns(2)
 
         with col1:
-            gender = st.selectbox("Giới tính", ["Female", "Male"], key="gender")
+            gender = st.selectbox("Gender", ["Female", "Male"], key="gender")
             senior = st.selectbox(
-                "Khách hàng cao tuổi", ["No", "Yes"],
-                format_func=lambda x: "Có" if x == "Yes" else "Không",
+                "Senior Citizen", ["No", "Yes"],
+                format_func=lambda x: "Yes" if x == "Yes" else "No",
                 key="senior",
             )
-            partner = st.selectbox("Có vợ/chồng/đối tác", ["No", "Yes"], key="partner")
-            dependents = st.selectbox("Có người phụ thuộc", ["No", "Yes"], key="dependents")
+            partner = st.selectbox("Partner", ["No", "Yes"], key="partner")
+            dependents = st.selectbox("Dependents", ["No", "Yes"], key="dependents")
             tenure = st.slider("Số tháng sử dụng dịch vụ", 0, 72, 12, key="tenure")
 
-            # --- PhoneService & MultipleLines (phụ thuộc) ---
-            phone_service = st.selectbox("Dịch vụ điện thoại", ["No", "Yes"], key="phone_service")
+            # PhoneService & MultipleLines (phụ thuộc)
+            phone_service = st.selectbox("Phone Service", ["No", "Yes"], key="phone_service")
             no_phone = phone_service == "No"
             multiple_lines = st.selectbox(
-                "Nhiều đường dây",
+                "Multiple Lines",
                 options=["No phone service"] if no_phone else ["No", "Yes"],
                 disabled=no_phone,
                 key="multiple_lines",
-                help="Không khả dụng khi không có dịch vụ điện thoại." if no_phone else None,
+                help="Not available when there is no phone service." if no_phone else None,
             )
             if no_phone:
                 multiple_lines = "No phone service"
 
-            # --- InternetService & các dịch vụ phụ thuộc (cột 1) ---
-            internet_service = st.selectbox("Dịch vụ Internet", ["DSL", "Fiber optic", "No"], key="internet_service")
+            # InternetService & các dịch vụ phụ thuộc (cột 1)
+            internet_service = st.selectbox("Internet Service", ["DSL", "Fiber optic", "No"], key="internet_service")
             no_internet = internet_service == "No"
-            inet_help = "Không khả dụng khi không có dịch vụ Internet." if no_internet else None
+            inet_help = "Not available when there is no Internet service." if no_internet else None
 
             online_security = st.selectbox(
                 "Online Security",
@@ -121,21 +219,33 @@ def main() -> None:
             if no_internet:
                 streaming_movies = "No internet service"
 
-            contract = st.selectbox("Loại hợp đồng", ["Month-to-month", "One year", "Two year"], key="contract")
-            paperless_billing = st.selectbox("Hóa đơn điện tử", ["No", "Yes"], key="paperless_billing")
+            contract = st.selectbox("Contract", ["Month-to-month", "One year", "Two year"], key="contract")
+            paperless_billing = st.selectbox("Paperless Billing", ["No", "Yes"], key="paperless_billing")
             payment_method = st.selectbox(
-                "Phương thức thanh toán",
+                "Payment Method",
                 ["Electronic check", "Mailed check", "Bank transfer (automatic)", "Credit card (automatic)"],
                 key="payment_method",
             )
-            monthly_charges = st.number_input("Chi phí hàng tháng", min_value=0.0, max_value=200.0, value=70.0, key="monthly_charges")
-            total_charges = st.number_input("Tổng chi tiêu", min_value=0.0, max_value=10000.0, value=840.0, key="total_charges")
-            threshold = st.slider("Ngưỡng dự đoán", 0.30, 0.70, DEFAULT_THRESHOLD, 0.05, key="threshold")
+            monthly_charges = st.number_input("Monthly Charges", min_value=0.0, max_value=200.0, value=70.0, key="monthly_charges")
+
+            # Feature 2: Auto-calculate TotalCharges
+            auto_calc = st.checkbox("Auto-calculate from tenure × MonthlyCharges", key="auto_calc_total")
+            if auto_calc:
+                total_charges = round(tenure * monthly_charges, 2)
+                st.info(f"💰 TotalCharges = {tenure} × {monthly_charges:,.2f} = **{total_charges:,.2f}**")
+            else:
+                total_charges = st.number_input(
+                    "Total Charges", min_value=0.0, max_value=10000.0, value=840.0, key="total_charges",
+                )
+
+            threshold = st.slider("Prediction Threshold", 0.30, 0.70, DEFAULT_THRESHOLD, 0.05, key="threshold")
 
         st.divider()
-        submitted = st.button("🔍 Dự đoán Churn", type="primary", use_container_width=True)
+        submitted = st.button("🔍 Predict Churn", type="primary", use_container_width=True)
 
         if submitted:
+            # Xóa kết quả cũ trước khi tính toán lại
+            st.session_state.pop("pred_result", None)
             customer = pd.DataFrame(
                 [
                     {
@@ -162,11 +272,26 @@ def main() -> None:
                 ]
             )
             result = predict_churn_probability(model, customer, threshold=threshold)
+            probability = float(result.loc[0, "churn_probability"])
+            label = result.loc[0, "prediction_label"]
             st.session_state["pred_result"] = {
-                "probability": float(result.loc[0, "churn_probability"]),
-                "label": result.loc[0, "prediction_label"],
+                "probability": probability,
+                "label": label,
             }
 
+            # Feature 3: Lưu vào lịch sử dự đoán
+            risk = "Cao" if probability >= 0.7 else "Trung bình" if probability >= 0.4 else "Thấp"
+            st.session_state["prediction_history"].append({
+                "Contract": contract,
+                "InternetService": internet_service,
+                "Tenure": tenure,
+                "MonthlyCharges": monthly_charges,
+                "Probability": f"{probability:.2%}",
+                "Prediction": label,
+                "Risk": risk,
+            })
+
+        # Hiển thị kết quả dự đoán
         if "pred_result" in st.session_state:
             probability = st.session_state["pred_result"]["probability"]
             label = st.session_state["pred_result"]["label"]
@@ -177,6 +302,19 @@ def main() -> None:
             st.metric("Xác suất Churn", f"{probability:.2%}")
             st.write(f"**Dự đoán:** {'Có khả năng rời bỏ dịch vụ' if label == 'Yes' else 'Ít khả năng rời bỏ dịch vụ'}")
             st.write(f"**Mức rủi ro:** {risk_color} {risk}")
+
+        # Feature 3: Bảng lịch sử dự đoán
+        if st.session_state["prediction_history"]:
+            st.divider()
+            st.subheader("📊 Lịch sử dự đoán")
+            history_df = pd.DataFrame(st.session_state["prediction_history"])
+            history_df.index = range(1, len(history_df) + 1)
+            history_df.index.name = "#"
+            st.dataframe(history_df, use_container_width=True)
+            if st.button("🗑 Xóa lịch sử"):
+                st.session_state["prediction_history"] = []
+                st.session_state.pop("pred_result", None)
+                st.rerun()
 
     with tab2:
         st.subheader("Dự đoán cho danh sách khách hàng")
@@ -195,7 +333,7 @@ def main() -> None:
                     final_df = pd.concat([input_df, results], axis=1)
                     st.write(f"Đã dự đoán cho **{len(final_df)}** khách hàng. Hiển thị 20 dòng đầu:")
                     st.dataframe(final_df.head(20))
-                    
+
                     csv = final_df.to_csv(index=False).encode('utf-8')
                     st.download_button("Tải kết quả dự đoán (.csv)", csv, "churn_predictions.csv", "text/csv")
             except Exception as e:

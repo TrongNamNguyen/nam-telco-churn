@@ -20,7 +20,7 @@ def _save_current_figure(path: Path) -> Path:
 
 def plot_target_distribution(df: pd.DataFrame, output_dir: Path = FIGURE_DIR) -> Path:
     path = output_dir / "01_churn_distribution.png"
-    counts = df["Churn"].value_counts().reindex(["No", "Yes"])
+    counts = df["Churn"].value_counts().reindex(["No", "Yes"]).fillna(0)
     plt.figure(figsize=(6, 4))
     plt.bar(counts.index.astype(str), counts.values)
     plt.title("Phân bổ biến mục tiêu Churn")
@@ -68,7 +68,8 @@ def plot_numeric_by_churn(df: pd.DataFrame, column: str, output_dir: Path = FIGU
     path = output_dir / f"{column}_by_churn.png"
     groups = [df.loc[df["Churn"] == label, column].dropna() for label in ["No", "Yes"]]
     plt.figure(figsize=(7, 4.5))
-    plt.boxplot(groups, labels=["No", "Yes"], showmeans=True)
+    plt.boxplot(groups, showmeans=True)
+    plt.xticks([1, 2], ["No", "Yes"])
     plt.title(f"Phân bổ {column} theo Churn")
     plt.xlabel("Churn")
     plt.ylabel(column)

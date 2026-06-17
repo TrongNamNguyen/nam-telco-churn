@@ -5,7 +5,7 @@ from typing import Any
 
 import pandas as pd
 
-from src.config import CATEGORICAL_FEATURES, EXPECTED_COLUMNS, FEATURE_COLUMNS, TARGET_COLUMN
+from src.config import CATEGORICAL_FEATURES, EXPECTED_COLUMNS, FEATURE_COLUMNS, ID_COLUMN, TARGET_COLUMN
 
 SENIOR_CITIZEN_MAP = {0: "No", 1: "Yes", "0": "No", "1": "Yes", "No": "No", "Yes": "Yes"}
 
@@ -106,7 +106,6 @@ def clean_telco_data(df: pd.DataFrame) -> pd.DataFrame:
     df = _strip_text_columns(df)
     
     # 4. Xóa trùng lặp (Ưu tiên kiểm tra theo customerID nếu có)
-    from src.config import ID_COLUMN
     if ID_COLUMN in df.columns:
         df = df.drop_duplicates(subset=[ID_COLUMN])
     else:

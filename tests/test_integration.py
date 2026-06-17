@@ -1,5 +1,6 @@
 import pytest
 import pandas as pd
+from src.config import FEATURE_COLUMNS
 from src.data_processing import clean_telco_data, split_features_target
 from src.modeling import build_candidate_models
 
@@ -37,7 +38,7 @@ def test_full_cleaning_and_splitting_flow():
     
     # 2. Test Split
     X, y = split_features_target(cleaned_df)
-    assert X.shape == (2, 19)
+    assert X.shape == (2, len(FEATURE_COLUMNS))
     assert y.tolist() == [0, 1]
 
 @pytest.mark.integration

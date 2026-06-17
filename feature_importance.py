@@ -12,10 +12,12 @@ def main() -> None:
     if not model_path.exists():
         raise FileNotFoundError("Chưa có mô hình. Hãy chạy: python train.py")
 
-    model = joblib.load(model_path)
-    importance_df = extract_feature_importance(model, top_n=15)
+    # Tạo thư mục đầu ra
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
+
+    model = joblib.load(model_path)
+    importance_df = extract_feature_importance(model, top_n=15)
     output_path = REPORT_DIR / "feature_importance_top15.csv"
     importance_df.to_csv(output_path, index=False)
     plot_feature_importance(importance_df)

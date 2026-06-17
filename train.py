@@ -45,11 +45,11 @@ def main() -> None:
         if raw_df.empty:
             print("Lỗi: File dữ liệu rỗng.")
             return
+        df = clean_telco_data(raw_df)
     except Exception as e:
-        print(f"Lỗi khi nạp dữ liệu: {e}")
+        print(f"Lỗi khi nạp hoặc làm sạch dữ liệu: {e}")
         return
 
-    df = clean_telco_data(raw_df)
     print(f"Dữ liệu sau khi làm sạch: {df.shape[0]} dòng, {df.shape[1]} cột.")
     
     # Chia đặc trưng và mục tiêu
