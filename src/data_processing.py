@@ -7,7 +7,20 @@ import pandas as pd
 
 from src.config import CATEGORICAL_FEATURES, EXPECTED_COLUMNS, FEATURE_COLUMNS, ID_COLUMN, TARGET_COLUMN
 
-SENIOR_CITIZEN_MAP = {0: "No", 1: "Yes", "0": "No", "1": "Yes", "No": "No", "Yes": "Yes"}
+def _normalize_yes_no(val):
+    """Chuẩn hóa các biến thể Yes/No/0/1 (không phân biệt hoa-thường) về 'Yes' hoặc 'No'.
+
+    Hỗ trợ: 0, 1, "0", "1", "Yes", "yes", "YES", "No", "no", "NO", v.v.
+    Trả về giá trị gốc nếu không nhận diện được (sẽ được imputer xử lý sau).
+    """
+    if pd.isna(val):
+        return val
+    s = str(val).strip().lower()
+    if s in ("yes", "1", "1.0"):
+        return "Yes"
+    if s in ("no", "0", "0.0"):
+        return "No"
+    return val
 
 
 def load_telco_data(path: str | Path) -> pd.DataFrame:
@@ -68,9 +81,9 @@ def normalize_customer_input(customer_data: dict[str, Any] | pd.DataFrame) -> pd
     # Bước 1: Kiểm tra xem có đủ cột để dự đoán không
     validate_schema(df, require_target=False)
 
-    # Bước 2: Đồng nhất SeniorCitizen (0/1 -> No/Yes)
+    # Bước 2: Đồng nhất SeniorCitizen (0/1/yes/no -> "Yes"/"No", không phân biệt hoa-thường)
     if "SeniorCitizen" in df.columns:
-        df["SeniorCitizen"] = df["SeniorCitizen"].map(SENIOR_CITIZEN_MAP)
+        df["SeniorCitizen"] = df["SeniorCitizen"].apply(_normalize_yes_no)
 
     # Bước 3: Ép kiểu số cho các cột định lượng
     for col in ["tenure", "MonthlyCharges"]:
@@ -96,11 +109,13 @@ def clean_telco_data(df: pd.DataFrame) -> pd.DataFrame:
     df.columns = df.columns.str.strip()
     validate_schema(df)
 
-    # 1. Xử lý cột số và giá trị thiếu
+    # 1. Ép kiểu số cho các cột định lượng (đề phòng dữ liệu thô chứa chuỗi lạ)
+    for col in ["tenure", "MonthlyCharges"]:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
     df = _fix_total_charges(df)
 
-    # 2. Đồng nhất SeniorCitizen
-    df["SeniorCitizen"] = df["SeniorCitizen"].map(SENIOR_CITIZEN_MAP)
+    # 2. Đồng nhất SeniorCitizen (0/1/yes/no -> "Yes"/"No", không phân biệt hoa-thường)
+    df["SeniorCitizen"] = df["SeniorCitizen"].apply(_normalize_yes_no)
 
     # 3. Làm sạch chuỗi
     df = _strip_text_columns(df)
@@ -122,7 +137,7 @@ def split_features_target(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     """
     validate_schema(df)
     X = df[FEATURE_COLUMNS].copy()
-    y = df[TARGET_COLUMN].map({"No": 0, "Yes": 1})
+    y = df[TARGET_COLUMN].apply(_normalize_yes_no).map({"No": 0, "Yes": 1})
     if y.isna().any():
         invalid = df.loc[y.isna(), TARGET_COLUMN].unique().tolist()
         raise ValueError(f"Cột Churn có giá trị không hợp lệ: {invalid}")
