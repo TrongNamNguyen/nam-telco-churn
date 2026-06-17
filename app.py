@@ -100,6 +100,30 @@ def _apply_preset(preset_key: str) -> None:
 
 def main() -> None:
     st.set_page_config(page_title="Telco Customer Churn Prediction", page_icon="📉", layout="wide")
+    
+
+    # Đồng bộ hóa bộ nhớ (Session State) để tránh Warning / Crash dưới terminal
+    if "phone_service" in st.session_state: # Nếu trong sổ đang ghi người này KHÔNG dùng điện thoại ("No")
+        if st.session_state["phone_service"] == "No": # Thì bắt buộc ghi vào mục "multiplelines" là "No phone service" (Không có dịch vụ điện thoại)
+            st.session_state["multiple_lines"] = "No phone service"
+        elif st.session_state.get("multiple_lines") == "No phone service": # Ngược lại, nếu người này chọn CÓ dùng điện thoại, nhưng trong sổ vẫn đang bị kẹt chữ "No phone service" từ lần chọn cũ
+            st.session_state["multiple_lines"] = "No"  # Thì chủ động sửa chữ đó thành "No" (Không dùng nhiều đường truyền) để máy tính không bị lú
+
+    if "internet_service" in st.session_state: # Nếu người này chọn KHÔNG dùng Internet ("No")
+        if st.session_state["internet_service"] == "No": # Chạy một vòng lặp qua cả 6 dịch vụ đi kèm...
+            for field in ("online_security", "online_backup", "device_protection",
+                          "tech_support", "streaming_tv", "streaming_movies"): # ... và ghi vào sổ cho cả 6 dịch vụ này là "No internet service" (Không có mạng internet)
+                st.session_state[field] = "No internet service"
+        # Ngược lại, nếu người này CÓ dùng Internet (chọn DSL hoặc Cáp quang)
+        else:
+            # Chạy vòng lặp qua 6 dịch vụ đi kèm...
+            for field in ("online_security", "online_backup", "device_protection",
+                          "tech_support", "streaming_tv", "streaming_movies"):
+                # ... nếu dịch vụ nào trong sổ vẫn đang lưu là "No internet service" (cũ)
+                if st.session_state.get(field) == "No internet service":
+                    # Thì chủ động sửa lại thành "No" (Không đăng ký dịch vụ con) cho khớp logic mới
+                    st.session_state[field] = "No"
+
     st.title("📉 Customer Churn Prediction System")
     st.write("Nhập thông tin khách hàng để dự đoán khả năng rời bỏ dịch vụ.")
 
